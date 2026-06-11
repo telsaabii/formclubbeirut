@@ -9,6 +9,9 @@ export const wa = (text: string) =>
 
 export const MAPS_URL = "https://maps.app.goo.gl/bGYafURoCx7Rejun9?g_st=ipc";
 
+export const INSTAGRAM_HANDLE = "@formclubbeirut";
+export const INSTAGRAM_URL = "https://www.instagram.com/formclubbeirut";
+
 export const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/memberships", label: "Memberships & Classes" },

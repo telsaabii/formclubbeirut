@@ -1,21 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import AnimatedLogo from "@/components/AnimatedLogo";
+import HeroGradient from "@/components/HeroGradient";
 import Marquee from "@/components/Marquee";
 import MapCard from "@/components/MapCard";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
+import StrengthShowcase from "@/components/strength/StrengthShowcase";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
-import { SERVICES, wa } from "@/lib/site";
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL, wa } from "@/lib/site";
 
 export default function Home() {
   return (
     <>
       {/* ================= HERO ================= */}
-      <section className="hero-glow grain relative flex min-h-[100svh] flex-col justify-center overflow-hidden pt-16">
-        <div className="grid-lines absolute inset-0" aria-hidden="true" />
+      <section className="grain relative flex min-h-[100svh] flex-col justify-center overflow-hidden bg-ink pt-16">
+        <HeroGradient className="pointer-events-none absolute inset-0 h-full w-full" />
 
-        <div className="relative mx-auto w-full max-w-6xl px-5 pb-16 pt-10 text-center">
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-16 pt-10 text-center">
           <p className="kicker fade-rise" style={{ animationDelay: "0.1s" }}>
             Verdun · بيروت — Opening Soon
           </p>
@@ -50,8 +52,8 @@ export default function Home() {
               <WhatsAppIcon className="h-4 w-4" />
               Book a Trial Session
             </a>
-            <Link href="/memberships" className="btn btn-ghost">
-              View Memberships
+            <Link href="/memberships#schedule" className="btn btn-ghost">
+              View Classes
             </Link>
           </div>
         </div>
@@ -66,65 +68,60 @@ export default function Home() {
 
       <Marquee />
 
-      {/* ================= SERVICES ================= */}
-      <section className="relative py-24 md:py-32">
-        <div className="mx-auto max-w-6xl px-5">
-          <Reveal selector="[data-reveal]">
-            <SectionHeading
-              kicker="What we do"
-              title="Every form of strength"
-              lead="Four disciplines, one standard. Pick your lane — or train across all of them."
-            />
-          </Reveal>
+      {/* ================= SERVICES — scroll-driven showcase ================= */}
+      <StrengthShowcase />
 
-          <Reveal selector="[data-reveal]" className="mt-14 grid gap-5 sm:grid-cols-2">
-            {SERVICES.map((s) => (
-              <Link
-                key={s.n}
-                href={s.href}
-                data-reveal
-                className="card group block p-8"
-              >
-                <div className="flex items-start justify-between">
-                  <span className="font-mono text-xs tracking-[0.25em] text-violet-hi">
-                    {s.n}
-                  </span>
-                  <span
-                    className="text-ash/50 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-violet-hi"
-                    aria-hidden="true"
-                  >
-                    →
-                  </span>
-                </div>
-                <h3 className="display mt-10 text-3xl text-bone md:text-4xl">
-                  {s.title}
-                </h3>
-                <p className="mt-4 text-sm leading-relaxed text-ash">{s.blurb}</p>
-              </Link>
-            ))}
-          </Reveal>
+      {/* ================= THE CLUB × MUAY THAI ================= */}
+      <section className="relative overflow-hidden border-y border-line bg-raised py-24 md:py-32">
+        <div
+          className="pointer-events-none absolute -right-6 top-1/2 -translate-y-1/2 select-none text-[24vw] font-bold leading-none text-violet/10"
+          aria-hidden="true"
+        >
+          مواي تاي
         </div>
-      </section>
 
-      {/* ================= TEAM ================= */}
-      <section className="relative border-y border-line bg-raised py-24 md:py-32">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1fr_1.15fr]">
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.1fr_1fr]">
           <Reveal selector="[data-reveal]">
             <SectionHeading
               kicker="The club"
               title="Train with people who show up"
               lead="A community of fighters, lifters, and beginners who take their training seriously — and each other further."
             />
-            <div data-reveal className="mt-8">
+
+            <p className="kicker mt-10" data-reveal>
+              Featured program — Group Muay Thai
+            </p>
+            <p
+              className="mt-4 text-base leading-relaxed text-ash"
+              data-reveal
+            >
+              FORM CLUB BEIRUT is proud to announce its collaboration with{" "}
+              <strong className="text-bone">Agile Gym</strong> and{" "}
+              <strong className="text-bone">Master Kassem El Khatib</strong> for
+              a dedicated Group Muay Thai Class — the art of eight limbs,
+              coached with technique first and conditioning always.
+            </p>
+
+            <p
+              className="mt-7 inline-block border border-line-strong px-4 py-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-ash"
+              data-reveal
+            >
+              All levels welcome
+            </p>
+
+            <div className="mt-9 flex flex-wrap gap-4" data-reveal>
               <a
-                href={wa("Hi Form Club! I'd like to join the community.")}
+                href={wa("Hi Form Club! I'm interested in the Group Muay Thai class.")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-primary"
               >
                 <WhatsAppIcon className="h-4 w-4" />
-                Join the Club
+                Ask About Muay Thai
               </a>
+              <Link href="/memberships#schedule" className="btn btn-ghost">
+                See the Schedule
+              </Link>
             </div>
           </Reveal>
 
@@ -146,80 +143,22 @@ export default function Home() {
               </div>
               <figcaption className="flex items-center justify-between gap-4 p-5 font-mono text-[0.65rem] uppercase tracking-[0.2em] text-ash">
                 <span>The Form Club family — Verdun, Beirut</span>
-                <span className="text-violet-hi">@formclubbeirut</span>
+                <a
+                  href={INSTAGRAM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-violet-hi transition-colors hover:text-bone"
+                >
+                  {INSTAGRAM_HANDLE}
+                </a>
               </figcaption>
             </figure>
           </Reveal>
         </div>
       </section>
 
-      {/* ================= MUAY THAI COLLAB ================= */}
-      <section className="relative overflow-hidden py-24 md:py-32">
-        <div
-          className="pointer-events-none absolute -right-6 top-1/2 -translate-y-1/2 select-none text-[24vw] font-bold leading-none text-violet/10"
-          aria-hidden="true"
-        >
-          مواي تاي
-        </div>
-
-        <div className="relative mx-auto max-w-6xl px-5">
-          <Reveal selector="[data-reveal]" className="max-w-3xl">
-            <p className="kicker" data-reveal>
-              Featured program — Martial Arts
-            </p>
-            <h2
-              className="display mt-4 text-5xl text-bone sm:text-6xl md:text-7xl"
-              data-reveal
-            >
-              Group <span className="text-violet-hi">Muay Thai</span>
-            </h2>
-            <p
-              className="mt-6 text-base leading-relaxed text-ash md:text-lg"
-              data-reveal
-            >
-              FORM CLUB BEIRUT is proud to announce its collaboration with{" "}
-              <strong className="text-bone">Agile Gym</strong> and{" "}
-              <strong className="text-bone">Master Kassem El Khatib</strong> for
-              a dedicated Group Muay Thai Class — the art of eight limbs,
-              coached with technique first and conditioning always.
-            </p>
-
-            <ul
-              className="mt-8 flex flex-wrap gap-3 font-mono text-[0.68rem] uppercase tracking-[0.18em]"
-              data-reveal
-            >
-              {["All levels welcome", "Gloves available", "Ring on site"].map(
-                (t) => (
-                  <li
-                    key={t}
-                    className="border border-line-strong px-4 py-2 text-ash"
-                  >
-                    {t}
-                  </li>
-                )
-              )}
-            </ul>
-
-            <div className="mt-9 flex flex-wrap gap-4" data-reveal>
-              <a
-                href={wa("Hi Form Club! I'm interested in the Group Muay Thai class.")}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-primary"
-              >
-                <WhatsAppIcon className="h-4 w-4" />
-                Ask About Muay Thai
-              </a>
-              <Link href="/memberships#schedule" className="btn btn-ghost">
-                See the Schedule
-              </Link>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
       {/* ================= LOCATION ================= */}
-      <section className="relative border-t border-line py-24 md:py-32">
+      <section className="relative py-24 md:py-32">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1fr_1.2fr]">
           <Reveal selector="[data-reveal]">
             <SectionHeading

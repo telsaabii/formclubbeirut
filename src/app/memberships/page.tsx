@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
 import WhatsAppIcon from "@/components/WhatsAppIcon";
@@ -52,29 +53,6 @@ const TIERS = [
       "Priority booking",
     ],
     featured: false,
-  },
-] as const;
-
-const CLASSES = [
-  {
-    title: "Strength Training",
-    desc: "Barbell-first group strength. Squat, hinge, press, pull — coached, progressive, and tracked.",
-    tag: "Strength",
-  },
-  {
-    title: "Muay Thai",
-    desc: "Group class in collaboration with Agile Gym & Master Kassem El Khatib. Technique, pads, conditioning.",
-    tag: "Combat",
-  },
-  {
-    title: "Personal Training",
-    desc: "One-on-one coaching built around your assessment. Any goal, any level, your pace.",
-    tag: "Coaching",
-  },
-  {
-    title: "Rehab Training",
-    desc: "Recovery-focused small sessions: mobility, stability, and strength rebuilding after assessment.",
-    tag: "Recovery",
   },
 ] as const;
 
@@ -154,7 +132,8 @@ export default function MembershipsPage() {
 
           <Reveal
             selector="[data-reveal]"
-            className="mt-12 grid gap-5 lg:grid-cols-3"
+            y={0}
+            className="mt-12 grid items-start gap-5 lg:grid-cols-3"
           >
             {TIERS.map((t) => (
               <div
@@ -241,7 +220,14 @@ export default function MembershipsPage() {
                     </td>
                     {slot.classes.map((c, i) => (
                       <td key={`${slot.time}-${DAYS[i]}`} className="border-b border-line p-3">
-                        {c ? (
+                        {c === "Rehab" ? (
+                          <Link
+                            href="/rehab"
+                            className={`inline-block px-3 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.12em] transition-colors hover:bg-violet hover:text-white ${TAG_STYLE[c]}`}
+                          >
+                            {c}
+                          </Link>
+                        ) : c ? (
                           <span
                             className={`inline-block px-3 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.12em] ${TAG_STYLE[c] ?? "bg-bone/10 text-bone"}`}
                           >
@@ -266,29 +252,10 @@ export default function MembershipsPage() {
         </div>
       </section>
 
-      {/* ---------- CLASSES ---------- */}
+      {/* ---------- CTA ---------- */}
       <section className="py-20 md:py-28">
         <div className="mx-auto max-w-6xl px-5">
-          <Reveal selector="[data-reveal]">
-            <SectionHeading
-              kicker="Featured classes"
-              title="Built around four pillars"
-            />
-          </Reveal>
-
-          <Reveal selector="[data-reveal]" className="mt-12 grid gap-5 sm:grid-cols-2">
-            {CLASSES.map((c) => (
-              <div key={c.title} data-reveal className="card p-8">
-                <span className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-violet-hi">
-                  {c.tag}
-                </span>
-                <h3 className="display mt-4 text-3xl text-bone">{c.title}</h3>
-                <p className="mt-4 text-sm leading-relaxed text-ash">{c.desc}</p>
-              </div>
-            ))}
-          </Reveal>
-
-          <Reveal className="mt-14 text-center">
+          <Reveal className="text-center">
             <a
               href={wa("Hi Form Club! I'd like to ask about memberships and classes.")}
               target="_blank"

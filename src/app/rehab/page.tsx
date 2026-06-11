@@ -51,6 +51,84 @@ const STEPS = [
   },
 ] as const;
 
+/* ---------- step visuals — CSS-only loops, disabled under reduced motion ---------- */
+
+const STROKE = {
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+};
+
+/** Clipboard with a scanning line sweeping down — movement screening. */
+function AssessmentVisual() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true" className="h-12 w-12">
+      <rect x="10" y="7" width="28" height="35" rx="2" {...STROKE} />
+      <path d="M19 7 h10 v4 h-10 z" {...STROKE} />
+      <line x1="16" y1="18" x2="32" y2="18" {...STROKE} opacity={0.25} />
+      <line x1="16" y1="25" x2="32" y2="25" {...STROKE} opacity={0.25} />
+      <line x1="16" y1="32" x2="28" y2="32" {...STROKE} opacity={0.25} />
+      <line className="rehab-scan" x1="14" y1="14" x2="34" y2="14" {...STROKE} />
+    </svg>
+  );
+}
+
+/** Checklist items ticking in one after another — the plan taking shape. */
+function ProgramVisual() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true" className="h-12 w-12">
+      {[0, 1, 2].map((row) => (
+        <g
+          key={row}
+          className="rehab-tick"
+          style={{ animationDelay: `${row * 0.55}s` }}
+        >
+          <path
+            d={`M9 ${13 + row * 11} l3 3 l5 -6`}
+            {...STROKE}
+          />
+          <line
+            x1="23"
+            y1={`${14 + row * 11}`}
+            x2="40"
+            y2={`${14 + row * 11}`}
+            {...STROKE}
+          />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+/** Bars climbing back up — strength returning over time. */
+function RebuildVisual() {
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true" className="h-12 w-12">
+      <line x1="8" y1="41" x2="40" y2="41" {...STROKE} opacity={0.4} />
+      {[
+        { x: 11, y: 29, h: 12, delay: 0 },
+        { x: 20, y: 22, h: 19, delay: 0.25 },
+        { x: 29, y: 14, h: 27, delay: 0.5 },
+      ].map((bar) => (
+        <rect
+          key={bar.x}
+          className="rehab-rise"
+          style={{ animationDelay: `${bar.delay}s` }}
+          x={bar.x}
+          y={bar.y}
+          width="6"
+          height={bar.h}
+          fill="currentColor"
+        />
+      ))}
+    </svg>
+  );
+}
+
+const STEP_VISUALS = [AssessmentVisual, ProgramVisual, RebuildVisual] as const;
+
 export default function RehabPage() {
   return (
     <>
@@ -120,10 +198,17 @@ export default function RehabPage() {
           </Reveal>
 
           <Reveal selector="[data-reveal]" className="mt-12 grid gap-5 md:grid-cols-3">
-            {STEPS.map((s, i) => (
+            {STEPS.map((s, i) => {
+              const Visual = STEP_VISUALS[i];
+              return (
               <div key={s.step} data-reveal className="relative">
                 <div className="card h-full p-8">
-                  <span className="kicker">{s.step}</span>
+                  <div className="flex items-start justify-between">
+                    <span className="kicker">{s.step}</span>
+                    <div className="text-violet-hi/80">
+                      <Visual />
+                    </div>
+                  </div>
                   <h3 className="display mt-4 text-2xl text-bone">{s.title}</h3>
                   <p className="mt-4 text-sm leading-relaxed text-ash">{s.desc}</p>
                 </div>
@@ -136,7 +221,8 @@ export default function RehabPage() {
                   </span>
                 )}
               </div>
-            ))}
+              );
+            })}
           </Reveal>
 
           <Reveal className="mt-14 text-center">

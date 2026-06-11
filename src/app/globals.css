@@ -170,6 +170,37 @@ body {
   animation: marker-bob 2.4s ease-in-out infinite;
 }
 
+/* ---------- rehab step visuals (CSS-only loops) ---------- */
+@keyframes rehab-scan {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(26px); }
+}
+
+.rehab-scan {
+  animation: rehab-scan 2.6s ease-in-out infinite;
+}
+
+@keyframes rehab-tick {
+  0%, 20% { opacity: 0.15; }
+  40%, 100% { opacity: 1; }
+}
+
+.rehab-tick {
+  opacity: 0.15;
+  animation: rehab-tick 3s ease-out infinite;
+}
+
+@keyframes rehab-rise {
+  0%, 15% { transform: scaleY(0.1); }
+  55%, 100% { transform: scaleY(1); }
+}
+
+.rehab-rise {
+  transform-origin: bottom;
+  transform-box: fill-box;
+  animation: rehab-rise 3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
 /* ---------- cards ---------- */
 .card {
   position: relative;
@@ -191,5 +222,7 @@ body {
   .fade-rise { animation-duration: 0.01ms; opacity: 1; }
   .ping-ring, .marker-bob { animation: none; }
   .ping-ring { opacity: 0; }
+  .rehab-scan, .rehab-rise { animation: none; }
+  .rehab-tick { animation: none; opacity: 1; }
   .btn, .card { transition: none; }
 }
