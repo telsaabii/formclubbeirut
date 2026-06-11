@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* ink scale */
+  --color-ink: #07060b;
+  --color-raised: #0e0c15;
+  --color-panel: #131019;
+  --color-line: rgba(244, 242, 250, 0.08);
+  --color-line-strong: rgba(244, 242, 250, 0.16);
+
+  /* brand */
+  --color-violet: #5c28ad;
+  --color-violet-mid: #7c3fd9;
+  --color-violet-hi: #9a63ef;
+
+  /* type */
+  --color-bone: #f4f2fa;
+  --color-ash: #9d98ac;
+
+  --font-sans: var(--font-archivo), system-ui, sans-serif;
+  --font-mono: var(--font-plex), ui-monospace, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-bone);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-violet);
+  color: #fff;
+}
+
+/* ---------- display type: echoes the logo's heavy italic letterforms ---------- */
+.display {
+  font-family: var(--font-sans);
+  font-stretch: 116%;
+  font-weight: 850;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.015em;
+  line-height: 0.92;
+}
+
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-violet-hi);
+}
+
+/* ---------- atmosphere ---------- */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.hero-glow {
+  background:
+    radial-gradient(58% 48% at 50% 18%, rgba(92, 40, 173, 0.34) 0%, transparent 70%),
+    radial-gradient(40% 34% at 78% 80%, rgba(92, 40, 173, 0.12) 0%, transparent 70%),
+    var(--color-ink);
+}
+
+.grid-lines {
+  background-image:
+    linear-gradient(var(--color-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(75% 70% at 50% 40%, black 30%, transparent 100%);
+}
+
+/* ---------- buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  transition: transform 0.18s ease, background-color 0.18s ease,
+    border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.btn-primary {
+  background: var(--color-violet);
+  color: #fff;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+
+.btn-primary:hover {
+  background: var(--color-violet-mid);
+  box-shadow: 0 8px 36px rgba(92, 40, 173, 0.45);
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  border: 1px solid var(--color-line-strong);
+  color: var(--color-bone);
+}
+
+.btn-ghost:hover {
+  border-color: var(--color-violet-hi);
+  color: var(--color-violet-hi);
+  transform: translateY(-2px);
+}
+
+/* ---------- marquee ---------- */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+
+/* ---------- hero entrance (CSS-only, GSAP handles the kettlebell) ---------- */
+@keyframes fade-rise {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-rise {
+  opacity: 0;
+  animation: fade-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ---------- map marker pulse ---------- */
+@keyframes ping-ring {
+  0% { transform: scale(0.35); opacity: 0.9; }
+  80%, 100% { transform: scale(1); opacity: 0; }
+}
+
+.ping-ring {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: ping-ring 2.4s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+
+@keyframes marker-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.marker-bob {
+  animation: marker-bob 2.4s ease-in-out infinite;
+}
+
+/* ---------- cards ---------- */
+.card {
+  position: relative;
+  background: var(--color-raised);
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+  border-color: rgba(154, 99, 239, 0.55);
+  transform: translateY(-4px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(92, 40, 173, 0.18);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .marquee-track { animation: none; }
+  .fade-rise { animation-duration: 0.01ms; opacity: 1; }
+  .ping-ring, .marker-bob { animation: none; }
+  .ping-ring { opacity: 0; }
+  .btn, .card { transition: none; }
+}
