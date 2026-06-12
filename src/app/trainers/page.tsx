@@ -53,7 +53,11 @@ const TRAINERS: Trainer[] = [
 
 function TrainerCard({ t }: { t: Trainer }) {
   return (
-    <div data-reveal className="card group overflow-hidden">
+    // subgrid: rows (photo · name+role · bio · tags · cta) align across all cards
+    <div
+      data-reveal
+      className="card group grid gap-y-5 overflow-hidden [grid-row:span_5] [grid-template-rows:subgrid]"
+    >
       {/* photo slot — replace with a real portrait */}
       <div className="relative flex aspect-[4/3] items-center justify-center border-b border-dashed border-line-strong bg-gradient-to-br from-violet/25 via-panel to-raised">
         <span
@@ -67,31 +71,34 @@ function TrainerCard({ t }: { t: Trainer }) {
         </span>
       </div>
 
-      <div className="p-7">
+      <div className="px-7">
         <h3 className="display text-2xl text-bone">{t.name}</h3>
         <p className="mt-1 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-violet-hi">
           {t.role}
         </p>
-        <p className="mt-4 text-sm leading-relaxed text-ash">{t.bio}</p>
-        <ul className="mt-5 flex flex-wrap gap-2">
-          {t.specialties.map((s) => (
-            <li
-              key={s}
-              className="border border-line-strong px-3 py-1 font-mono text-[0.6rem] uppercase tracking-[0.15em] text-ash"
-            >
-              {s}
-            </li>
-          ))}
-        </ul>
-        <a
-          href={wa(`Hi Form Club! I'd like a consultation with your ${t.role.toLowerCase()}.`)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-6 inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.15em] text-bone transition-colors hover:text-violet-hi"
-        >
-          Book a consultation <span aria-hidden="true">→</span>
-        </a>
       </div>
+
+      <p className="px-7 text-sm leading-relaxed text-ash">{t.bio}</p>
+
+      <ul className="flex flex-wrap gap-2 self-start px-7">
+        {t.specialties.map((s) => (
+          <li
+            key={s}
+            className="border border-line-strong px-3 py-1 font-mono text-[0.6rem] uppercase tracking-[0.15em] text-ash"
+          >
+            {s}
+          </li>
+        ))}
+      </ul>
+
+      <a
+        href={wa(`Hi Form Club! I'd like a consultation with your ${t.role.toLowerCase()}.`)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 self-end px-7 pb-7 font-mono text-[0.7rem] uppercase tracking-[0.15em] text-bone transition-colors hover:text-violet-hi"
+      >
+        Book a consultation <span aria-hidden="true">→</span>
+      </a>
     </div>
   );
 }
@@ -103,7 +110,7 @@ export default function TrainersPage() {
         <div className="relative mx-auto max-w-3xl">
           <p className="kicker fade-rise">The coaching team</p>
           <h1
-            className="display fade-rise mt-4 text-5xl text-bone sm:text-6xl md:text-7xl"
+            className="display fade-rise mt-4 text-[clamp(1.7rem,8.5vw,3rem)] text-bone sm:text-6xl md:text-7xl"
             style={{ animationDelay: "0.15s" }}
           >
             Coaches, not <span className="text-violet-hi">cheerleaders</span>

@@ -118,11 +118,17 @@ void main(){ gl_Position = vec4(a_pos, 0.0, 1.0); }
 `;
 
 function compile(gl: WebGLRenderingContext, type: number, src: string) {
-  const sh = gl.createShader(type)!;
+  const sh = gl.createShader(type);
+  if (!sh) return null;
   gl.shaderSource(sh, src);
   gl.compileShader(sh);
   if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
-    console.error(gl.getShaderInfoLog(sh));
+    // A lost context makes every GL query return null/false — that surfaces here
+    // as a bogus "compile failure" with a null info log. It's not a shader bug, so
+    // don't shout about it; the contextrestored handler rebuilds when the GPU is back.
+    if (!gl.isContextLost()) {
+      console.error("HeroGradient: shader compile failed —", gl.getShaderInfoLog(sh));
+    }
     gl.deleteShader(sh);
     return null;
   }
@@ -141,92 +147,136 @@ export default function HeroGradient({ className }: { className?: string }) {
       (canvas.getContext("experimental-webgl") as WebGLRenderingContext | null);
     if (!gl) return; // CSS fallback background stays visible
 
-    const vs = compile(gl, gl.VERTEX_SHADER, VERT);
-    const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG);
-    if (!vs || !fs) return;
-
-    const prog = gl.createProgram()!;
-    gl.attachShader(prog, vs);
-    gl.attachShader(prog, fs);
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-      console.error(gl.getProgramInfoLog(prog));
-      return;
-    }
-    gl.useProgram(prog);
-
-    const buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    const aPos = gl.getAttribLocation(prog, "a_pos");
-    gl.enableVertexAttribArray(aPos);
-    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-
-    const uRes = gl.getUniformLocation(prog, "u_res");
-    const uTime = gl.getUniformLocation(prog, "u_time");
-    const uMode = gl.getUniformLocation(prog, "u_mode");
-    const uGlow = gl.getUniformLocation(prog, "u_glow");
-
-    gl.uniform1f(uMode, MODE);
-    gl.uniform1f(uGlow, GLOW);
-
     const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let raf = 0;
+    let running = false;
+    let disposed = false;
+    let start = performance.now();
+    let uRes: WebGLUniformLocation | null = null;
+    let uTime: WebGLUniformLocation | null = null;
+
     function resize() {
-      if (!canvas) return;
+      if (!canvas || !gl || gl.isContextLost()) return;
       const w = Math.floor(canvas.clientWidth * dpr);
       const h = Math.floor(canvas.clientHeight * dpr);
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
       }
-      gl!.viewport(0, 0, canvas.width, canvas.height);
-      gl!.uniform2f(uRes, canvas.width, canvas.height);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
     }
-    resize();
+
+    function frame(now: number) {
+      if (!running || !gl || gl.isContextLost()) return;
+      gl.uniform1f(uTime, (now - start) / 1000);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      raf = requestAnimationFrame(frame);
+    }
+
+    // (Re)create all GL resources. Idempotent and safe to re-run after a context
+    // restore. Returns false (silently) if the context is gone — the
+    // webglcontextrestored handler will call it again once the GPU recovers.
+    function build(): boolean {
+      if (disposed || !gl || gl.isContextLost()) return false;
+
+      const vs = compile(gl, gl.VERTEX_SHADER, VERT);
+      const fs = compile(gl, gl.FRAGMENT_SHADER, FRAG);
+      if (!vs || !fs) return false;
+
+      const prog = gl.createProgram();
+      if (!prog) return false;
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        if (!gl.isContextLost()) {
+          console.error("HeroGradient: program link failed —", gl.getProgramInfoLog(prog));
+        }
+        return false;
+      }
+      gl.useProgram(prog);
+
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      const aPos = gl.getAttribLocation(prog, "a_pos");
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+      uRes = gl.getUniformLocation(prog, "u_res");
+      uTime = gl.getUniformLocation(prog, "u_time");
+      gl.uniform1f(gl.getUniformLocation(prog, "u_mode"), MODE);
+      gl.uniform1f(gl.getUniformLocation(prog, "u_glow"), GLOW);
+
+      resize();
+
+      if (reduced) {
+        // one frozen frame, no loop (AGENTS.md invariant #2)
+        gl.uniform1f(uTime, 8.0);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        return true;
+      }
+
+      start = performance.now();
+      running = true;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(frame);
+      return true;
+    }
+
+    // Real GPU context loss (driver reset, tab backgrounded, GPU process recycled).
+    // preventDefault() opts into automatic restoration; we rebuild on restore.
+    function onLost(e: Event) {
+      e.preventDefault();
+      running = false;
+      cancelAnimationFrame(raf);
+    }
+    function onRestored() {
+      build();
+    }
+    canvas.addEventListener("webglcontextlost", onLost);
+    canvas.addEventListener("webglcontextrestored", onRestored);
+
+    build();
+
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
-      gl.uniform1f(uTime, 8.0);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
-      return () => {
-        ro.disconnect();
-        gl.getExtension("WEBGL_lose_context")?.loseContext();
-      };
+    let io: IntersectionObserver | null = null;
+    if (!reduced) {
+      io = new IntersectionObserver(
+        ([e]) => {
+          if (disposed || !gl || gl.isContextLost()) return;
+          if (e.isIntersecting && !running) {
+            running = true;
+            raf = requestAnimationFrame(frame);
+          } else if (!e.isIntersecting && running) {
+            running = false;
+            cancelAnimationFrame(raf);
+          }
+        },
+        { threshold: 0 }
+      );
+      io.observe(canvas);
     }
-
-    let raf = 0;
-    let running = true;
-    const start = performance.now();
-    function frame(now: number) {
-      if (!running) return;
-      gl!.uniform1f(uTime, (now - start) / 1000);
-      gl!.drawArrays(gl!.TRIANGLES, 0, 3);
-      raf = requestAnimationFrame(frame);
-    }
-    raf = requestAnimationFrame(frame);
-
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting && !running) {
-          running = true;
-          raf = requestAnimationFrame(frame);
-        } else if (!e.isIntersecting && running) {
-          running = false;
-          cancelAnimationFrame(raf);
-        }
-      },
-      { threshold: 0 }
-    );
-    io.observe(canvas);
 
     return () => {
+      // Stop work and detach listeners only. We intentionally do NOT call
+      // WEBGL_lose_context.loseContext() here: in dev, React StrictMode runs this
+      // cleanup between two mounts on the *same* canvas, and a deliberately-lost
+      // context is handed back by the next getContext() call — making every GL
+      // query (incl. shader compile) fail with a null info log. The browser
+      // reclaims the context on GC once the canvas is unmounted.
+      disposed = true;
       running = false;
       cancelAnimationFrame(raf);
       ro.disconnect();
-      io.disconnect();
-      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      io?.disconnect();
+      canvas.removeEventListener("webglcontextlost", onLost);
+      canvas.removeEventListener("webglcontextrestored", onRestored);
     };
   }, []);
 
