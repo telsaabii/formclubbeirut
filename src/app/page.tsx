@@ -28,7 +28,7 @@ export default function Home() {
             className="display fade-rise mx-auto max-w-3xl text-4xl text-bone sm:text-5xl md:text-6xl"
             style={{ animationDelay: "0.25s" }}
           >
-            Strength in <span className="text-violet-hi">Every Form</span>
+            Strength in <span className="accent-anim text-violet-hi">Every Form</span>
           </h1>
 
           <p

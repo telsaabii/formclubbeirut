@@ -149,6 +149,36 @@ body {
   animation: fade-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* ---------- hero accent: violet shimmer drift + breathing glow ---------- */
+/* first and last gradient stops match so the 0%→200% drift loops seamlessly */
+@keyframes accent-drift {
+  from { background-position: 0% center; }
+  to { background-position: 200% center; }
+}
+
+@keyframes accent-breathe {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(154, 99, 239, 0.16)); }
+  50% { filter: drop-shadow(0 0 26px rgba(154, 99, 239, 0.5)); }
+}
+
+.accent-anim {
+  background-image: linear-gradient(
+    105deg,
+    var(--color-violet-hi) 0%,
+    #cdb2ff 22%,
+    var(--color-violet-hi) 46%,
+    var(--color-violet-mid) 72%,
+    var(--color-violet-hi) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation:
+    accent-drift 7s linear infinite,
+    accent-breathe 5.2s ease-in-out infinite;
+}
+
 /* ---------- map marker pulse ---------- */
 @keyframes ping-ring {
   0% { transform: scale(0.35); opacity: 0.9; }
@@ -220,6 +250,7 @@ body {
   html { scroll-behavior: auto; }
   .marquee-track { animation: none; }
   .fade-rise { animation-duration: 0.01ms; opacity: 1; }
+  .accent-anim { animation: none; }
   .ping-ring, .marker-bob { animation: none; }
   .ping-ring { opacity: 0; }
   .rehab-scan, .rehab-rise { animation: none; }

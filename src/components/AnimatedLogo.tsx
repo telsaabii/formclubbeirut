@@ -18,11 +18,21 @@ const IMG = { w: 1502, h: 1142 };
 const OV = { x: 413, y: 351, w: 330, h: 373 };
 const PIVOT = { x: 580, y: 355 };
 
+// landing bloom — a square sized off the kettlebell, centered on its body
+// (not the handle), drawn in front with mix-blend screen so the logo PNG's
+// dark anti-aliased edges brighten instead of reading as an outline
+const BLOOM = {
+  size: OV.w * 2.6,
+  cx: OV.x + OV.w / 2,
+  cy: OV.y + OV.h * 0.62,
+};
+
 const pct = (v: number, of: number) => `${(v / of) * 100}%`;
 
 export default function AnimatedLogo({ className }: { className?: string }) {
   const root = useRef<HTMLDivElement>(null);
   const kb = useRef<HTMLDivElement>(null);
+  const bloom = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
@@ -52,7 +62,19 @@ export default function AnimatedLogo({ className }: { className?: string }) {
             ease: "sine.inOut",
             yoyo: true,
             repeat: -1,
-          });
+          })
+          // violet bloom flashes the instant the bell lands (drop ends at 0.73)
+          .fromTo(
+            bloom.current,
+            { opacity: 0, scale: 0.55 },
+            { opacity: 1, scale: 1, duration: 0.12, ease: "power3.out" },
+            0.73
+          )
+          .to(
+            bloom.current,
+            { opacity: 0, scale: 1.5, duration: 0.75, ease: "power2.out" },
+            0.85
+          );
       });
       return () => mm.revert();
     },
@@ -95,6 +117,19 @@ export default function AnimatedLogo({ className }: { className?: string }) {
           className="object-contain"
         />
       </div>
+      <div
+        ref={bloom}
+        aria-hidden="true"
+        className="pointer-events-none absolute opacity-0 mix-blend-screen will-change-transform"
+        style={{
+          left: pct(BLOOM.cx - BLOOM.size / 2, IMG.w),
+          top: pct(BLOOM.cy - BLOOM.size / 2, IMG.h),
+          width: pct(BLOOM.size, IMG.w),
+          height: pct(BLOOM.size, IMG.h),
+          background:
+            "radial-gradient(circle, rgba(154, 99, 239, 0.8) 0%, rgba(124, 63, 217, 0.34) 32%, rgba(92, 40, 173, 0.1) 55%, transparent 72%)",
+        }}
+      />
     </div>
   );
 }

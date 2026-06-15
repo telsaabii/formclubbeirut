@@ -31,6 +31,8 @@ uniform vec2  u_res;
 uniform float u_time;
 uniform float u_mode;
 uniform float u_glow;
+uniform vec2  u_mouse; // pointer in uv space (y up), eased in JS
+uniform float u_mstr;  // 0→1 ramp after first pointer move (0 = current look)
 
 float hash(vec2 p){
   p = fract(p * vec2(123.34, 345.45));
@@ -86,6 +88,11 @@ void main(){
     float dr = distance(vec2(uv.x * aspect, uv.y), vec2(aspect, 0.05));
     mask = exp(-dl * dl * 1.0) + exp(-dr * dr * 1.0);
   }
+
+  // cursor pool — a soft violet glow that drifts toward the pointer; the
+  // logo guard below still dims it behind the wordmark, so FORM stays clean
+  vec2 mp = vec2((uv.x - u_mouse.x) * aspect, uv.y - u_mouse.y);
+  mask += exp(-dot(mp, mp) * 3.2) * 0.5 * u_mstr;
 
   float lum = field * clamp(mask, 0.0, 1.0) * u_glow;
 
@@ -156,6 +163,25 @@ export default function HeroGradient({ className }: { className?: string }) {
     let start = performance.now();
     let uRes: WebGLUniformLocation | null = null;
     let uTime: WebGLUniformLocation | null = null;
+    let uMouse: WebGLUniformLocation | null = null;
+    let uMstr: WebGLUniformLocation | null = null;
+
+    // pointer state — `cur` eases toward `target` each frame so the glow
+    // drifts rather than tracks; strength ramps from 0 on first pointer move,
+    // so devices without a pointer keep the exact pre-cursor look
+    const target = { x: 0.5, y: 0.3 };
+    const cur = { x: 0.5, y: 0.3 };
+    let targetStr = 0;
+    let curStr = 0;
+
+    function onPointerMove(e: PointerEvent) {
+      if (!canvas) return;
+      const r = canvas.getBoundingClientRect();
+      if (r.width === 0 || r.height === 0) return;
+      target.x = (e.clientX - r.left) / r.width;
+      target.y = 1 - (e.clientY - r.top) / r.height; // gl_FragCoord is y-up
+      targetStr = 1;
+    }
 
     function resize() {
       if (!canvas || !gl || gl.isContextLost()) return;
@@ -171,7 +197,12 @@ export default function HeroGradient({ className }: { className?: string }) {
 
     function frame(now: number) {
       if (!running || !gl || gl.isContextLost()) return;
+      cur.x += (target.x - cur.x) * 0.045;
+      cur.y += (target.y - cur.y) * 0.045;
+      curStr += (targetStr - curStr) * 0.03;
       gl.uniform1f(uTime, (now - start) / 1000);
+      if (uMouse) gl.uniform2f(uMouse, cur.x, cur.y);
+      if (uMstr) gl.uniform1f(uMstr, curStr);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       raf = requestAnimationFrame(frame);
     }
@@ -208,8 +239,12 @@ export default function HeroGradient({ className }: { className?: string }) {
 
       uRes = gl.getUniformLocation(prog, "u_res");
       uTime = gl.getUniformLocation(prog, "u_time");
+      uMouse = gl.getUniformLocation(prog, "u_mouse");
+      uMstr = gl.getUniformLocation(prog, "u_mstr");
       gl.uniform1f(gl.getUniformLocation(prog, "u_mode"), MODE);
       gl.uniform1f(gl.getUniformLocation(prog, "u_glow"), GLOW);
+      if (uMouse) gl.uniform2f(uMouse, cur.x, cur.y);
+      if (uMstr) gl.uniform1f(uMstr, curStr);
 
       resize();
 
@@ -239,6 +274,7 @@ export default function HeroGradient({ className }: { className?: string }) {
     }
     canvas.addEventListener("webglcontextlost", onLost);
     canvas.addEventListener("webglcontextrestored", onRestored);
+    if (!reduced) window.addEventListener("pointermove", onPointerMove);
 
     build();
 
@@ -277,6 +313,7 @@ export default function HeroGradient({ className }: { className?: string }) {
       io?.disconnect();
       canvas.removeEventListener("webglcontextlost", onLost);
       canvas.removeEventListener("webglcontextrestored", onRestored);
+      window.removeEventListener("pointermove", onPointerMove);
     };
   }, []);
 
